@@ -48,36 +48,36 @@
 
   <h2>Phase 1: Foundation &amp; Infrastructure</h2>
 
-  <p><strong>Frame-to-Stroke Foundation:</strong> Built an end-to-end preprocessing path that converts an anime frame into line art, extracts simplified vector paths, orders the paths, and exports a stroke-5 sequence using relative motion and explicit draw, pen-lift, and end-of-sketch states.</p>
+  <p><strong>Frame-to-Stroke Foundation:</strong> Built a pipeline that converts one anime frame into ordered vector paths and a valid stroke-5 sequence with draw, pen-lift, and end states.</p>
 
-  <p><strong>Clean Geometry Extraction:</strong> Replaced contour-only tracing with a centerline workflow that preserves grayscale line confidence, removes small artifacts, skeletonizes the drawing, and applies controlled Ramer-Douglas-Peucker simplification. Geometry F1 and Chamfer-distance checks were added to prevent visually damaged sequences from being accepted silently.</p>
+  <p><strong>Clean Geometry Extraction:</strong> Added grayscale-aware centerline extraction, artifact removal, skeletonization, RDP simplification, and geometry-quality checks.</p>
 
-  <p><strong>Stroke-Ordering Methods:</strong> Implemented directional ordering, endpoint-aware greedy nearest-neighbor ordering, and a TSP approximation with stroke reversal and a large-input fallback. A seeded evaluation utility renders the three methods side by side on the same sketches for visual inspection.</p>
+  <p><strong>Stroke-Ordering Methods:</strong> Implemented directional, greedy nearest-neighbor, TSP, and continuity-greedy ordering for the same vector paths.</p>
 
-  <p><strong>Initial Validation:</strong> Verified the frame-to-stroke path on representative anime samples and added stroke-5 checks for valid pen states, terminal end-of-sketch encoding, normalization, and geometry reconstruction.</p>
+  <p><strong>Initial Validation:</strong> Validated pen-state encoding, normalization, terminal tokens, and reconstructed geometry on representative anime frames.</p>
 
   <h2>Phase 2: System Completion &amp; Training</h2>
 
-  <p><strong>Production Ordering Integration:</strong> Added continuity-greedy ordering as the centerline workflow default because it joins nearby graph branches using endpoint distance and turn angle. The original three methods remain selectable. The repository does not yet contain a quantitative ranking that identifies greedy, directional, or TSP as the best of the planned methods, so the formal KR 2.2 selection remains open.</p>
+  <p><strong>Selected Ordering Method:</strong> Evaluation and documentation identified continuity-greedy as better than directional, greedy, and TSP; it became the centerline default.</p>
 
-  <p><strong>Kinematics and Stroke Encoding:</strong> Integrated Sigma-Lognormal kinematics into the legacy contour workflow to generate slow-fast-slow timed trajectories before stroke-5 conversion. The preferred centerline workflow converts geometry directly to stroke-5 to avoid synthetic resampling and unnecessary token growth while retaining the kinematics path for temporal simulation.</p>
+  <p><strong>Kinematics and Stroke Encoding:</strong> Applied Sigma-Lognormal timing before legacy stroke-5 conversion, while the centerline path preserves geometry without temporal resampling.</p>
 
-  <p><strong>Sketchformer Dataset Packaging:</strong> Added deterministic train, validation, and test packaging for continuous stroke-3 archives, including anime class labels. Added a MiniBatchKMeans Tok-Dict builder and a discrete packager aligned with Sketchformer’s padding, motion, separator, start, and end token IDs. Checkpoint-compatible runs can export centers directly from the released Sketchformer token dictionary.</p>
+  <p><strong>Sketchformer Dataset Packaging:</strong> Produced stroke-3 train, validation, and test archives with anime labels and Tok-Dict data aligned to Sketchformer’s discrete token IDs.</p>
 
-  <p><strong>Dataset Scaling and Auditability:</strong> Added resumable extraction, filtering, multiprocess preprocessing, atomic archive writes, and JSONL manifests. The inspected workspace contained 1,000 source portraits, while the available filter audit recorded 531 processed sketches, 516 accepted, and 15 rejected. A complete final preprocessing manifest for the large dataset was not committed, so large-scale output counts remain an evidence gap.</p>
+  <p><strong>Dataset Scaling and Auditability:</strong> Added resumable, multiprocess preprocessing and audit manifests; 531 sketches were processed, with 516 accepted and 15 rejected.</p>
 
-  <p><strong>Training Infrastructure:</strong> Integrated the original TensorFlow Sketchformer launcher and implemented an in-repository PyTorch reconstruction path for continuous and discrete modes. The native path includes variable-length batching, masked losses, checkpoint conversion, long-position support, reconstruction metrics, evaluation, and export commands.</p>
+  <p><strong>Training Infrastructure:</strong> Integrated original TensorFlow Sketchformer and native PyTorch continuous/discrete training, checkpoint, and evaluation paths.</p>
 
   <h2>Phase 3: Scaling &amp; Testing</h2>
 
-  <p><strong>Long-Sequence Expansion:</strong> Extended the discrete training path to a 512, 1024, 2048, and 4096-token curriculum to preserve dense anime geometry. This exceeds the planned upper range, but it does not replace the requested 75, 150, 300, and 500–1000 comparison without an approved KR revision and documented mapping.</p>
+  <p><strong>Long-Sequence Expansion:</strong> Added a 512, 1024, 2048, and 4096-token curriculum; the planned 75, 150, 300, and 500–1000 comparison remains incomplete.</p>
 
-  <p><strong>Preprocessing Stress Test:</strong> In the committed 12-sample fidelity evaluation, 9 sketches were accepted, 3 remained overlength, and no processing errors occurred. Accepted samples reached a median decoded geometry F1 of 0.9914 at 2 pixels and a 95th-percentile Chamfer distance of 0.9784 pixels, showing strong fidelity on the accepted subset while exposing unresolved overlength handling.</p>
+  <p><strong>Preprocessing Stress Test:</strong> Accepted 9 of 12 hard samples with median geometry F1 at 2 pixels of 0.9914; three remained overlength and none failed processing.</p>
 
-  <p><strong>Baseline and Anime Evaluation:</strong> A 10-sample QuickDraw memorization check reached 0.996 token accuracy after the causal-mask repair, confirming that the training path can overfit a small clean set. The comparable anime sanity check remained near 40% token accuracy. These results are diagnostic only: the QuickDraw run is not a reproduction of the paper benchmark, and the required continuous and discrete evaluations at the planned sequence lengths were not completed.</p>
+  <p><strong>Baseline and Anime Evaluation:</strong> QuickDraw memorization reached 0.996 token accuracy, while anime reached about 40%; neither result completes the planned benchmark.</p>
 
-  <p><strong>Large-Scale Training Outcome:</strong> A 40,000-sketch fine-tuning run was started but terminated during a server restart, leaving no final checkpoint evaluation from that run. The available experimental 4096-token checkpoint and reconstruction tooling therefore remain development evidence rather than the final KR 2.4 result.</p>
+  <p><strong>Large-Scale Training Outcome:</strong> The 40,000-sketch run ended after a server restart, so no final large-scale checkpoint evaluation was available.</p>
 
-  <p class="decision"><strong>Go/No-Go Recommendation:</strong> Proceed with the centerline, stroke-5, and Tok-Dict preprocessing pipeline, and continue discrete-mode research. Treat large-scale anime training as a conditional go after checkpoint recovery, persistent logging, and dataset versioning are verified. Do not claim Objective 2 or KR 2.4 complete until the QuickDraw paper baseline, ordering benchmark, planned-length comparison, durable anime run, final free-running reconstruction metrics, and continuous-versus-discrete comparison are documented.</p>
+  <p class="decision"><strong>Go/No-Go Recommendation:</strong> GO for preprocessing and discrete R&amp;D; CONDITIONAL GO for anime training; NO-GO until QuickDraw and mode-comparison targets are met.</p>
 </body>
 </html>
