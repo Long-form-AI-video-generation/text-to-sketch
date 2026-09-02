@@ -1,0 +1,40 @@
+name: smoke_test
+status: active
+canonical_config: configs/experiment/smoke_test.yaml
+
+purpose:
+  Verify that the native in-repo Sketchformer path can run end to end on a
+  tiny training job before expensive long-sequence experiments are attempted.
+
+launch:
+  dry_run: "python scripts/sketchformer/train.py --experiment smoke_test --dry-run"
+  train: "python scripts/sketchformer/train.py --experiment smoke_test"
+  evaluate: "python scripts/sketchformer/evaluate.py --experiment smoke_test --checkpoint weights/finetuned/smoke_test/last.pt"
+  export: "python scripts/sketchformer/export.py --experiment smoke_test --checkpoint weights/finetuned/smoke_test/last.pt --output weights/finetuned/smoke_test/export.pt"
+
+expected_data:
+  root: data/processed/sketchformer-ready-data/tok-dict
+  token_dictionary: data/processed/sketch_token/codebook.npy
+  train: train_*.npz
+  valid: valid.npz
+  test: test.npz
+  metadata: meta.npz
+
+expected_artifacts:
+  checkpoint_last: weights/finetuned/smoke_test/last.pt
+  checkpoint_best: weights/finetuned/smoke_test/best.pt
+  export: weights/finetuned/smoke_test/export.pt
+
+acceptance_criteria:
+  - training_command_exits_zero
+  - loss_is_finite
+  - token_metrics_are_printed
+  - validation_metrics_are_printed
+  - checkpoint_last_exists
+  - evaluation_command_loads_checkpoint
+  - export_command_writes_file
+
+notes:
+  - This experiment is CPU-friendly.
+  - This experiment is not intended to prove model quality.
+  - Passing this experiment only proves the software path is connected.

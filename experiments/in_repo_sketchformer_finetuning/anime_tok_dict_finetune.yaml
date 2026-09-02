@@ -1,0 +1,62 @@
+name: anime_tok_dict_finetune
+status: planned
+canonical_config: configs/experiment/anime_tok_dict_finetune.yaml
+
+purpose:
+  Fine-tune the native tok-dict Sketchformer model on anime token sequences
+  built from the sketch token dictionary.
+
+research_objective:
+  sequence_goal: 2048_tok_dict_tokens
+  objective: masked_token_cross_entropy
+  primary_metric: val/token_loss
+  attention_baseline: pytorch_sdpa_with_flash_preferred
+  later_attention_experiments:
+    - sparse_attention
+    - local_global_attention
+    - chunked_generation
+
+launch:
+  dry_run: "python scripts/sketchformer/train.py --experiment anime_tok_dict_finetune --dry-run"
+  train: "python scripts/sketchformer/train.py --experiment anime_tok_dict_finetune"
+  evaluate: "python scripts/sketchformer/evaluate.py --experiment anime_tok_dict_finetune --checkpoint weights/finetuned/sketchformer-tok-dict-anime/last.pt"
+  export: "python scripts/sketchformer/export.py --experiment anime_tok_dict_finetune --checkpoint weights/finetuned/sketchformer-tok-dict-anime/last.pt --output weights/finetuned/sketchformer-tok-dict-anime/export.pt"
+
+expected_data:
+  root: data/processed/sketchformer-ready-data/tok-dict
+  token_dictionary: data/processed/sketch_token/codebook.npy
+  train: train_*.npz
+  valid: valid.npz
+  test: test.npz
+  metadata: meta.npz
+
+expected_artifacts:
+  checkpoint_last: weights/finetuned/sketchformer-tok-dict-anime/last.pt
+  checkpoint_best: weights/finetuned/sketchformer-tok-dict-anime/best.pt
+  export: weights/finetuned/sketchformer-tok-dict-anime/export.pt
+
+hardware_notes:
+  cpu: smoke_test_only
+  recommended_gpu: cuda_gpu_with_flash_attention_support
+  memory_strategy:
+    - batch_size_2
+    - gradient_accumulation_4
+    - bf16_or_fp16_mixed_precision
+    - length_bucketing
+    - gradient_checkpointing
+
+acceptance_criteria:
+  - smoke_test_passed_first
+  - training_command_exits_zero
+  - train_token_loss_decreases_or_remains_stable
+  - validation_token_loss_is_finite
+  - token_accuracy_is_logged
+  - token_perplexity_is_logged
+  - codebook_decoded_reconstruction_plots_are_generated
+  - checkpoint_can_be_evaluated
+  - checkpoint_can_be_exported
+
+notes:
+  - This experiment should not be judged by classification accuracy.
+  - Token loss, token accuracy, token perplexity, and decoded sketches are the first signals.
+  - Continuous stroke3 fine-tuning is a legacy compatibility path, not the native objective.

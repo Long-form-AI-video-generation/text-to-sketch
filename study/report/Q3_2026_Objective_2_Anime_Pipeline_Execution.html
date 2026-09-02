@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Q3 2026 Objective 2 Execution: Anime Sketch Generation Pipeline</title>
+  <style>
+    @page { size: A4; margin: 1.8cm; }
+    body {
+      max-width: 860px;
+      margin: 0 auto;
+      color: #1f2933;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.38;
+    }
+    h1 {
+      margin: 0 0 14pt;
+      color: #17365d;
+      font-size: 17pt;
+      line-height: 1.25;
+    }
+    h2 {
+      margin: 13pt 0 6pt;
+      padding-bottom: 3pt;
+      border-bottom: 1px solid #9fbad0;
+      color: #244f73;
+      font-size: 13pt;
+      page-break-after: avoid;
+    }
+    p {
+      margin: 0 0 6pt;
+      text-align: left;
+      page-break-inside: avoid;
+    }
+    strong { color: #17365d; }
+    .decision {
+      margin-top: 8pt;
+      padding: 7pt 9pt;
+      border-left: 4px solid #c47f00;
+      background: #fff7e6;
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <h1>3.2 Objective 2: Build an Agentic Anime Sketch Generation Pipeline</h1>
+
+  <h2>Phase 1: Foundation &amp; Infrastructure</h2>
+
+  <p><strong>Frame-to-Stroke Foundation:</strong> Built a pipeline that converts one anime frame into ordered vector paths and a valid stroke-5 sequence with draw, pen-lift, and end states.</p>
+
+  <p><strong>Clean Geometry Extraction:</strong> Added grayscale-aware centerline extraction, artifact removal, skeletonization, RDP simplification, and geometry-quality checks.</p>
+
+  <p><strong>Stroke-Ordering Methods:</strong> Implemented directional, greedy nearest-neighbor, TSP, and continuity-greedy ordering for the same vector paths.</p>
+
+  <p><strong>Initial Validation:</strong> Validated pen-state encoding, normalization, terminal tokens, and reconstructed geometry on representative anime frames.</p>
+
+  <h2>Phase 2: System Completion &amp; Training</h2>
+
+  <p><strong>Selected Ordering Method:</strong> Evaluation and documentation identified continuity-greedy as better than directional, greedy, and TSP; it became the centerline default.</p>
+
+  <p><strong>Kinematics and Stroke Encoding:</strong> Applied Sigma-Lognormal timing before legacy stroke-5 conversion, while the centerline path preserves geometry without temporal resampling.</p>
+
+  <p><strong>Sketchformer Dataset Packaging:</strong> Produced stroke-3 train, validation, and test archives with anime labels and Tok-Dict data aligned to Sketchformer’s discrete token IDs.</p>
+
+  <p><strong>Dataset Scaling and Auditability:</strong> Added resumable, multiprocess preprocessing and audit manifests; 531 sketches were processed, with 516 accepted and 15 rejected.</p>
+
+  <p><strong>Training Infrastructure:</strong> Integrated original TensorFlow Sketchformer and native PyTorch continuous/discrete training, checkpoint, and evaluation paths.</p>
+
+  <h2>Phase 3: Scaling &amp; Testing</h2>
+
+  <p><strong>Long-Sequence Expansion:</strong> Added a 512, 1024, 2048, and 4096-token curriculum; the planned 75, 150, 300, and 500–1000 comparison remains incomplete.</p>
+
+  <p><strong>Preprocessing Stress Test:</strong> Accepted 9 of 12 hard samples with median geometry F1 at 2 pixels of 0.9914; three remained overlength and none failed processing.</p>
+
+  <p><strong>Baseline and Anime Evaluation:</strong> QuickDraw memorization reached 0.996 token accuracy, while anime reached about 40%; neither result completes the planned benchmark.</p>
+
+  <p><strong>Large-Scale Training Outcome:</strong> The 40,000-sketch run ended after a server restart, so no final large-scale checkpoint evaluation was available.</p>
+
+  <p class="decision"><strong>Go/No-Go Recommendation:</strong> GO for preprocessing and discrete R&amp;D; CONDITIONAL GO for anime training; NO-GO until QuickDraw and mode-comparison targets are met.</p>
+</body>
+</html>

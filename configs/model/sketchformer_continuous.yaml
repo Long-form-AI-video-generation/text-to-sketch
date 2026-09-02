@@ -1,0 +1,76 @@
+name: sketchformer_continuous
+framework: pytorch
+
+input:
+  stroke_dim: 3
+  continuous_xy: true
+  pen_classes: 3
+  max_seq_len: 2048
+
+architecture:
+  d_model: 128
+  latent_dim: 256
+  num_encoder_layers: 4
+  num_decoder_layers: 4
+  num_heads: 8
+  dim_feedforward: 512
+  dropout: 0.1
+  activation: gelu
+  norm_first: true
+  use_layer_norm: true
+  gradient_checkpointing: true
+
+embedding:
+  xy_projection: linear
+  pen_embedding_dim: 32
+  combine_method: add
+  positional_encoding:
+    type: learned
+    max_length: 2048
+    checkpoint_extension: interpolate_then_random_init
+
+encoder:
+  use_attention_mask: true
+  use_padding_mask: true
+  attention:
+    implementation: sdpa
+    preferred_backend: flash
+    allow_flash: true
+    allow_memory_efficient: true
+    allow_math_fallback: true
+    sparse:
+      enabled: false
+      pattern: block_local_global
+      block_size: 128
+      local_window: 512
+      global_tokens: 8
+
+decoder:
+  autoregressive: false
+  blind_decoder_mask: true
+  attention:
+    implementation: sdpa
+    preferred_backend: flash
+    allow_flash: true
+    allow_memory_efficient: true
+    allow_math_fallback: true
+
+heads:
+  reconstruction:
+    enabled: true
+    xy_distribution: gaussian_mixture
+    num_mixtures: 20
+    predict_pen_state: true
+  classification:
+    enabled: false
+    num_classes: 345
+    dropout: 0.1
+
+checkpoint:
+  load_converted_weights: false
+  converted_weights_path: weights/pretrained/sketchformer_continuous.safetensors
+  strict: false
+
+compile:
+  enabled: false
+  mode: default

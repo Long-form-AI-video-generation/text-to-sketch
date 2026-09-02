@@ -1,0 +1,62 @@
+name: memorize10_long
+description: Overfit 10 sketches for architecture sanity checking.
+
+run:
+  id: memorize10-long
+  output_dir: weights/finetuned/sketchformer-memorize10
+  resume_from_checkpoint: null
+
+pretrained:
+  use_converted_sketchformer_weights: true
+  path: weights/pretrained/sketchformer_tok_dict_4096_init.safetensors
+  strict: true
+
+overrides:
+  data:
+    dataset:
+      root: data/processed/sketchformer-ready-data/tok-dict-memorize10
+    sequence:
+      max_length: 4096
+      target_max_length: 4096
+      truncate_long_sequences: false
+    batching:
+      batch_size: 1
+      eval_batch_size: 1
+      max_tokens_per_batch: 0
+      eval_max_tokens_per_batch: 0
+      bucket_by_length: false
+      num_workers: 0
+      persistent_workers: false
+
+  model:
+    input:
+      max_seq_len: 4096
+    architecture:
+      latent_expander_base_length: 200
+      gradient_checkpointing: true
+    embedding:
+      positional_encoding:
+        max_length: 4096
+
+  trainer:
+    training:
+      max_epochs: 300
+      log_every_n_steps: 1
+      accumulate_grad_batches: 1
+      target_tokens_per_step: 0
+      limit_train_batches: 1.0
+      limit_val_batches: 1.0
+    curriculum:
+      enabled: false
+    checkpointing:
+      monitor: val/token_loss
+      mode: min
+      save_last: true
+      save_top_k: 1
+
+  optimizer:
+    optimizer:
+      lr: 0.0001
+    scheduler:
+      warmup_steps: 50
+      min_lr: 0.000001

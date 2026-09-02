@@ -1,0 +1,55 @@
+name: anime_tok_dict
+
+dataset:
+  root: data/processed/sketchformer-ready-data/tok-dict
+  train_pattern: train_*.npz
+  valid_file: valid.npz
+  test_file: test.npz
+  metadata_file: meta.npz
+
+format:
+  type: tok_dict
+  token_dictionary:
+    codebook_dir: data/processed/sketch_token
+    codebook_path: data/processed/sketch_token/codebook.npy
+    codebook_size: 1000
+    motion_token_offset: 1
+    pad_token_id: 0
+    sep_token_id: 1001
+    sos_token_id: 1002
+    eos_token_id: 1003
+    vocab_size: 1004
+
+sequence:
+  max_length: 2048
+  target_max_length: 2048
+  pad_value: 0
+  pad_to_multiple_of: 8
+  truncate_long_sequences: true
+  add_start_token: true
+  add_end_token: true
+  build_attention_mask: true
+
+batching:
+  batch_size: 2
+  eval_batch_size: 2
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  drop_last: false
+  bucket_by_length: true
+  bucket_boundaries:
+    - 256
+    - 512
+    - 1024
+    - 2048
+
+preprocessing:
+  max_cached_files: 2
+
+augmentation:
+  enabled: false
+
+validation:
+  min_visualization_samples: 8
+  reconstruction_samples: 8

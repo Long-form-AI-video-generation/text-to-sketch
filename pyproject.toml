@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "text-to-sketch"
+version = "0.1.0"
+description = "Anime image to Sketchformer-ready stroke sequence preprocessing pipeline."
+readme = "README.md"
+requires-python = ">=3.10"
+
+[project.scripts]
+tts-download-data = "prep_data.download_data:main"
+tts-extract-sketches = "prep_data.extract_sketches:main"
+tts-filter-sketches = "prep_data.filter_sketches:main"
+tts-create-sketch-token-dict = "prep_data.sketch_token.create_token_dict:main"
+tts-prepare-sketchformer = "prep_data.prepare_sketchformer:main"
+tts-prepare-sketchformer-tokens = "prep_data.prepare_sketchformer_tokens:main"
+tts-run-pipeline = "pipeline.run_pipeline:main"
+tts-sketchformer-codebase-finetune = "scripts.integrations.sketchformer_codebase_finetune:main"
+tts-inspect-sketchformer-pretrained = "scripts.sketchformer.inspect_pretrained:main"
+tts-train-sketchformer = "scripts.sketchformer.train:main"
+tts-evaluate-sketchformer = "scripts.sketchformer.evaluate:main"
+tts-export-sketchformer = "scripts.sketchformer.export:main"
+tts-convert-sketchformer-checkpoint = "scripts.sketchformer.convert_checkpoint:main"
+tts-check-sketchformer-memory = "scripts.sketchformer.memory_check:main"
+tts-check-sketchformer-parity = "scripts.sketchformer.parity_check:main"
+tts-compare-rdp = "metrics.preprocessing.compare_rdp_epsilon:main"
+tts-evaluate-encoder = "metrics.preprocessing.evaluate_encoder:main"
+tts-evaluate-ordering = "metrics.preprocessing.evaluate_ordering:main"
+tts-evaluate-centerline-preprocessing = "metrics.preprocessing.evaluate_centerline_preprocessing:main"
+
+[tool.setuptools.packages.find]
+include = [
+  "builders",
+  "builders.*",
+  "core",
+  "dataloaders",
+  "experiments",
+  "integrations",
+  "integrations.*",
+  "metrics",
+  "metrics.*",
+  "models",
+  "models.*",
+  "pipeline",
+  "prep_data",
+  "prep_data.*",
+  "scripts",
+  "scripts.*",
+  "utils",
+]

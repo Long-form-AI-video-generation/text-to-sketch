@@ -1,4 +1,4 @@
-"""Compatibility wrapper for ``pipeline.run_pipeline``."""
+"""Compatibility wrapper for ``metrics.preprocessing.evaluate_ordering``."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ def _add_project_to_path() -> None:
 
 _add_project_to_path()
 
-from pipeline.run_pipeline import main
+from metrics.preprocessing.evaluate_ordering import main
 
 
 if __name__ == "__main__":

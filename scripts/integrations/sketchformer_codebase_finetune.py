@@ -1,4 +1,4 @@
-"""Compatibility wrapper for ``pipeline.run_pipeline``."""
+"""CLI wrapper for Sketchformer codebase fine-tuning."""
 
 from __future__ import annotations
 
@@ -16,8 +16,8 @@ def _add_project_to_path() -> None:
 
 _add_project_to_path()
 
-from pipeline.run_pipeline import main
+from integrations.original_sketchformer.launcher import main
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

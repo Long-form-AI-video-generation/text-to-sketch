@@ -1,0 +1,64 @@
+name: anime_stroke3
+
+dataset:
+  root: data/processed/sketchformer-ready-data/stroke3
+  train_pattern: train_*.npz
+  valid_file: valid.npz
+  test_file: test.npz
+  metadata_file: meta.npz
+
+format:
+  type: stroke3
+  columns:
+    dx: 0
+    dy: 1
+    pen_state: 2
+  coordinate_mode: relative
+  continuous: true
+
+sequence:
+  max_length: 2048
+  target_max_length: 2048
+  pad_value: 0.0
+  pad_to_multiple_of: 8
+  truncate_long_sequences: true
+  add_end_token: false
+  build_attention_mask: false
+
+batching:
+  batch_size: 2
+  eval_batch_size: 2
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  drop_last: false
+  bucket_by_length: true
+  bucket_boundaries:
+    - 256
+    - 512
+    - 1024
+    - 2048
+
+preprocessing:
+  normalize_by_bounds: true
+  delta_clip: 1000.0
+  max_cached_files: 2
+
+augmentation:
+  enabled: true
+  random_scale:
+    enabled: true
+    min: 0.9
+    max: 1.1
+  random_translate:
+    enabled: false
+    max_abs: 0.0
+  stroke_jitter:
+    enabled: false
+    std: 0.0
+  shuffle_strokes:
+    enabled: false
+
+validation:
+  min_visualization_samples: 8
+  reconstruction_samples: 8

@@ -1,0 +1,38 @@
+name: smoke_test
+description: Minimal in-repo tok-dict Sketchformer fine-tuning smoke test.
+
+overrides:
+  data:
+    sequence:
+      max_length: 256
+      target_max_length: 256
+      pad_to_multiple_of: 8
+      build_attention_mask: true
+      length_curriculum:
+        enabled: false
+    batching:
+      batch_size: 2
+      eval_batch_size: 2
+      num_workers: 0
+      persistent_workers: false
+    validation:
+      min_visualization_samples: 2
+      reconstruction_samples: 2
+  trainer:
+    runtime:
+      precision: 32-true
+    training:
+      max_epochs: 1
+      limit_train_batches: 2
+      limit_val_batches: 1
+      log_every_n_steps: 1
+      accumulate_grad_batches: 1
+    checkpointing:
+      save_top_k: 1
+    debug:
+      fast_dev_run: false
+
+expected_result:
+  run_one_training_step: true
+  write_checkpoint: true
+  write_reconstruction_plot: true

@@ -1,0 +1,83 @@
+name: anime_tok_dict_long
+description: 4096-token curriculum fine-tuning from the released tok-dict checkpoint.
+
+run:
+  id: anime-tok-dict-long
+  output_dir: weights/finetuned/sketchformer-tok-dict-anime-4096
+  resume_from_checkpoint: null
+
+pretrained:
+  use_converted_sketchformer_weights: true
+  path: weights/pretrained/sketchformer_tok_dict_4096_init.safetensors
+  strict: true
+
+overrides:
+  data:
+    name: anime_tok_dict_long
+    dataset:
+      root: data/processed/sketchformer-ready-data/tok-dict-4096
+    sequence:
+      max_length: 4096
+      target_max_length: 4096
+      truncate_long_sequences: false
+    batching:
+      batch_size: 8
+      eval_batch_size: 8
+      max_tokens_per_batch: 4096
+      eval_max_tokens_per_batch: 4096
+      bucket_by_length: false
+      bucket_boundaries: [512, 1024, 2048, 4096]
+  model:
+    input:
+      max_seq_len: 4096
+    architecture:
+      latent_expander_base_length: 200
+      gradient_checkpointing: true
+    embedding:
+      positional_encoding:
+        max_length: 4096
+  trainer:
+    training:
+      max_epochs: 21
+      log_every_n_steps: 25
+      accumulate_grad_batches: 1
+      target_tokens_per_step: 32768
+    curriculum:
+      enabled: true
+      early_stopping_patience: 3
+      stages:
+        - name: extend-512
+          max_length: 512
+          epochs: 1
+          learning_rate: 0.0001
+          trainable: expander
+        - name: decoder-1024
+          max_length: 1024
+          epochs: 2
+          learning_rate: 0.00002
+          trainable: decoder
+        - name: full-2048
+          max_length: 2048
+          epochs: 3
+          learning_rate: 0.00001
+          trainable: all
+        - name: full-4096
+          max_length: 4096
+          epochs: 15
+          learning_rate: 0.000005
+          trainable: all
+    checkpointing:
+      monitor: val/token_loss
+      mode: min
+      save_last: true
+  optimizer:
+    optimizer:
+      lr: 0.0001
+    scheduler:
+      warmup_steps: 100
+      min_lr: 0.000001
+
+evaluation:
+  primary_metric: valid/free_running/geometry_f1_2px_median_length_2049_4096
+  decode_mode: free-running
+  generate_reconstruction_plots: true

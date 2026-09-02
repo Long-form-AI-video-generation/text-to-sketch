@@ -1,0 +1,17 @@
+defaults:
+  - data: anime_tok_dict
+  - model: sketchformer_tok_dict
+  - optimizer: adamw_cosine
+  - trainer: single_gpu
+  - experiment: smoke_test
+  - _self_
+
+project:
+  name: sketch-generation-from-text-prompt
+  task: in_repo_sketchformer_finetuning
+  seed: 42
+
+paths:
+  output_root: weights/finetuned
+  run_root: runs/sketchformer
+  log_root: logs/sketchformer
