@@ -17,16 +17,20 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import FuncFormatter, PercentFormatter
 
-METHODS = ("continuity_greedy", "directional_bias", "nn_greedy", "tsp")
+METHODS = ("continuity_greedy", "continuity_topology", "outer_to_inner", "directional_bias", "nn_greedy", "tsp")
 BASELINES = METHODS[1:]
 METHOD_LABELS = {
     "continuity_greedy": "Continuity-greedy",
+    "continuity_topology": "Continuity-topology",
+    "outer_to_inner": "Outer-to-inner",
     "directional_bias": "Directional bias",
     "nn_greedy": "NN-greedy",
     "tsp": "TSP",
 }
 METHOD_COLORS = {
     "continuity_greedy": "#0072B2",
+    "continuity_topology": "#56B4E9",
+    "outer_to_inner": "#D55E00",
     "directional_bias": "#E69F00",
     "nn_greedy": "#009E73",
     "tsp": "#CC79A7",
@@ -148,11 +152,11 @@ def load_report(path: Path) -> dict[str, Any]:
     if missing:
         raise ValueError(f"Evaluation report is missing keys: {sorted(missing)}")
 
-    for method in METHODS:
-        if method not in report["summary"]:
-            raise ValueError(f"Evaluation summary is missing method: {method}")
+    active_methods = [m for m in METHODS if m in report["summary"]]
+    if not active_methods:
+        raise ValueError(f"Evaluation summary is missing all known methods: {METHODS}")
     for metric in METRICS:
-        for method in METHODS:
+        for method in active_methods:
             if metric not in report["summary"][method]:
                 raise ValueError(f"Summary for {method} is missing metric: {metric}")
         if metric not in report["continuity_head_to_head"]:
@@ -265,16 +269,17 @@ def build_executive_dashboard(
 
     for axis, metric in zip(axes_flat, CORE_METRICS):
         specification = METRICS[metric]
-        values = [metric_mean(report, method, metric) for method in METHODS]
-        positions = np.arange(len(METHODS))
+        active_methods = [m for m in METHODS if m in report["summary"]]
+        values = [metric_mean(report, method, metric) for method in active_methods]
+        positions = np.arange(len(active_methods))
         bars = axis.barh(
             positions,
             values,
-            color=[METHOD_COLORS[method] for method in METHODS],
+            color=[METHOD_COLORS[method] for method in active_methods],
             height=0.62,
             alpha=0.94,
         )
-        axis.set_yticks(positions, [METHOD_LABELS[method] for method in METHODS])
+        axis.set_yticks(positions, [METHOD_LABELS[method] for method in active_methods])
         axis.invert_yaxis()
         axis.set_title(
             f"{specification['label']}\n{specification['direction'].title()} is better",
@@ -352,7 +357,7 @@ def build_relative_improvement_chart(
 ) -> dict[str, Any]:
     figure, axis = plt.subplots(figsize=(14, 8.5))
     positions = np.arange(len(CORE_METRICS))
-    bar_height = 0.23
+    bar_height = 0.8 / max(1, len(BASELINES))
 
     all_values: list[float] = []
     for baseline_index, baseline in enumerate(BASELINES):
@@ -366,7 +371,7 @@ def build_relative_improvement_chart(
                 )
             )
         all_values.extend(value for value in improvements if math.isfinite(value))
-        offsets = positions + (baseline_index - 1) * bar_height
+        offsets = positions + (baseline_index - (len(BASELINES) - 1) / 2.0) * bar_height
         bars = axis.barh(
             offsets,
             improvements,
